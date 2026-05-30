@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📊 முழுமையான வர்த்தக சரிபார்ப்பு - நேரம் & காரணங்கள்</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0a0e27; --bg2: #0f142f; --bg3: #151b3a;
+    --card: #1a1f3e; --card2: #20264a;
+    --border: rgba(59,130,246,0.15); --border2: rgba(59,130,246,0.3);
+    --accent: #3b82f6; --accent2: #60a5fa;
+    --green: #10b981; --red: #ef4444; --amber: #f59e0b;
+    --teal: #14b8a6; --purple: #a855f7; --pink: #ec4899;
+    --text: #f1f5f9; --text2: #94a3b8; --text3: #64748b;
+    --font-ta: 'Noto Sans Tamil', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-ta); min-height: 100vh; }
+  .header { background: linear-gradient(135deg, #0a0e27, #0f1535); border-bottom: 1px solid var(--border2); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .logo { width: 45px; height: 45px; background: linear-gradient(135deg, #3b82f6, #a855f7); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+  .header-title { font-size: 20px; font-weight: 700; background: linear-gradient(135deg, #fff, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .header-sub { font-size: 11px; color: var(--text2); }
+  .header-right { display: flex; gap: 10px; flex-wrap: wrap; }
+  .date-nav { display: flex; align-items: center; gap: 8px; background: var(--card); border-radius: 10px; padding: 6px 12px; }
+  .date-nav button { background: none; border: none; color: var(--accent2); cursor: pointer; font-size: 16px; padding: 4px 8px; }
+  .btn { padding: 8px 16px; border-radius: 10px; border: none; cursor: pointer; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+  .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+  .btn-success { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+  .btn-amber { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+  .btn-purple { background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; }
+  .btn-pink { background: linear-gradient(135deg, #ec4899, #db2777); color: white; }
+  .btn-outline { background: transparent; color: var(--text2); border: 1px solid var(--border2); }
+  .tabs { background: var(--bg2); border-bottom: 1px solid var(--border); display: flex; gap: 0; overflow-x: auto; padding: 0 16px; }
+  .tab { padding: 14px 24px; font-size: 13px; cursor: pointer; color: var(--text2); border-bottom: 2px solid transparent; white-space: nowrap; background: none; border: none; font-weight: 600; }
+  .tab:hover { color: var(--text); background: rgba(59,130,246,0.05); }
+  .tab.active { color: var(--accent2); border-bottom-color: var(--accent); }
+  .content { max-width: 1600px; margin: 0 auto; padding: 24px 20px; }
+  .tab-panel { display: none; animation: fadeIn 0.3s ease; }
+  .tab-panel.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .section-title { font-size: 16px; font-weight: 700; color: var(--accent2); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  .section-title::before { content: ''; width: 4px; height: 20px; background: linear-gradient(to bottom, var(--accent), var(--purple)); border-radius: 2px; }
+  .markets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .market-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; position: relative; transition: all 0.2s; }
+  .market-card:hover { transform: translateY(-2px); border-color: var(--border2); }
+  .market-card.up::before, .market-card.down::before, .market-card.neutral::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 16px 16px 0 0; }
+  .market-card.up::before { background: var(--green); }
+  .market-card.down::before { background: var(--red); }
+  .market-card.neutral::before { background: var(--amber); }
+  .market-name { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .market-time { font-size: 10px; color: var(--teal); margin-bottom: 8px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .market-impact { font-size: 10px; color: var(--purple); margin-bottom: 10px; padding: 5px 8px; background: rgba(168,85,247,0.1); border-radius: 8px; }
+  .market-points input, .market-pct input { background: var(--bg3); border: 1px solid var(--border); color: var(--text); font-size: 13px; font-weight: 600; padding: 5px 8px; border-radius: 8px; width: 100%; }
+  .market-pct { margin-top: 6px; }
+  .status-toggle { display: flex; gap: 6px; margin-top: 10px; }
+  .stbtn { flex: 1; padding: 4px; font-size: 10px; border: none; cursor: pointer; border-radius: 6px; font-weight: 600; }
+  .stbtn.up { background: rgba(16,185,129,0.15); color: var(--green); }
+  .stbtn.down { background: rgba(239,68,68,0.15); color: var(--red); }
+  .stbtn.neutral { background: rgba(245,158,11,0.15); color: var(--amber); }
+  .stbtn.active { opacity: 1; transform: scale(0.98); }
+  .stbtn:not(.active) { opacity: 0.5; }
+  .market-arrow { position: absolute; top: 16px; right: 16px; font-size: 18px; }
+  .add-form { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+  .form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 11px; color: var(--text2); font-weight: 600; }
+  .form-group input, .form-group select, .form-group textarea { background: var(--bg3); border: 1px solid var(--border2); color: var(--text); border-radius: 8px; padding: 8px 12px; font-size: 13px; font-family: var(--font-ta); }
+  .paste-area { background: #0f172a; border: 2px dashed #10b981; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
+  .paste-area textarea { width: 100%; background: #1e293b; border: 1px solid #334155; color: #f1f5f9; padding: 12px; border-radius: 8px; font-size: 12px; font-family: monospace; resize: vertical; }
+  .table-wrap { overflow-x: auto; border-radius: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th { background: var(--card2); color: var(--text2); padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border2); }
+  tbody tr { border-bottom: 1px solid var(--border); }
+  tbody tr:hover { background: var(--card2); }
+  tbody td { padding: 12px 14px; vertical-align: middle; }
+  .del-btn { background: rgba(239,68,68,0.1); color: var(--red); border: none; cursor: pointer; padding: 5px 10px; border-radius: 6px; }
+  .actions-bar { background: var(--card); border-radius: 16px; padding: 16px 20px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; margin-bottom: 24px; }
+  .report-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 16px; }
+  .report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; cursor: pointer; }
+  .report-title { font-size: 18px; font-weight: 700; color: var(--accent2); }
+  .report-content { display: none; padding: 16px; background: var(--bg3); border-radius: 12px; margin-top: 12px; }
+  .report-content.show { display: block; }
+  .consolidated-report { background: linear-gradient(135deg, var(--card2), var(--card)); border-radius: 20px; padding: 24px; margin-bottom: 24px; }
+  .history-list { display: flex; flex-direction: column; gap: 12px; max-height: 300px; overflow-y: auto; }
+  .history-item { background: var(--card); border-radius: 16px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; cursor: pointer; }
+  .history-item:hover { background: var(--card2); transform: translateX(5px); }
+  .empty-state { text-align: center; padding: 48px; color: var(--text3); }
+  .info-box { background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(168,85,247,0.1)); border-radius: 12px; padding: 12px; margin-bottom: 16px; border-left: 3px solid var(--teal); }
+  .info-title { font-size: 13px; font-weight: 700; color: var(--teal); margin-bottom: 6px; }
+  .info-text { font-size: 11px; color: var(--text2); line-height: 1.5; }
+  #toast { position: fixed; bottom: 30px; right: 30px; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 12px 20px; border-radius: 12px; z-index: 9999; opacity: 0; transition: opacity 0.3s; }
+  .example-box { background: var(--bg3); padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 11px; color: var(--text3); }
+  @media print { body { background: white; color: black; } .header, .tabs, .actions-bar, .btn, .del-btn, #toast { display: none; } .report-content { display: block !important; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left"><div class="logo">📊</div><div><div class="header-title">வர்த்தக சரிபார்ப்பு - நேரம் & காரணங்கள்</div><div class="header-sub">Market Timing & Impact Analysis</div></div></div>
+  <div class="header-right">
+    <div class="date-nav"><button onclick="changeDate(-1)">◀</button><span id="currentDate"></span><button onclick="changeDate(1)">▶</button></div>
+    <button class="btn btn-primary" onclick="saveAllData()">💾 சேமி</button>
+    <button class="btn btn-purple" onclick="showConsolidatedReport()">📑 முழு ரிப்போர்ட்</button>
+    <button class="btn btn-success" onclick="printConsolidatedReport()">🖨️ பிரிண்ட்</button>
+    <button class="btn btn-amber" onclick="shareConsolidatedReport()">📱 WhatsApp</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('markets', this)">🌍 உலக சந்தை</button>
+  <button class="tab" onclick="showTab('companies', this)">📊 காலாண்டு முடிவு</button>
+  <button class="tab" onclick="showTab('stocks', this)">🎯 பரிந்துரைகள்</button>
+  <button class="tab" onclick="showTab('reports', this)">📋 ரிப்போர்ட்கள்</button>
+  <button class="tab" onclick="showTab('info', this)">ℹ️ சந்தை தகவல்கள்</button>
+  <button class="tab" onclick="showTab('history', this)">📅 வரலாறு</button>
+</div>
+
+<div class="content">
+  <!-- MARKETS TAB -->
+  <div id="tab-markets" class="tab-panel active">
+    <div class="section-title">🌍 உலக சந்தை முடிவுகள் (LTP, Points, %)</div>
+    <div class="markets-grid" id="marketsGrid"></div>
+    <div class="actions-bar"><button class="btn btn-primary" onclick="analyzeMarkets()">🤖 AI பகுப்பாய்வு</button><button class="btn btn-outline" onclick="clearMarkets()">🔄 மீட்டமை</button></div>
+    <div class="report-card"><div class="report-header" onclick="toggleReport('marketsReport')"><div class="report-title">📈 உலக சந்தை AI ரிப்போர்ட்</div><span>▼</span></div><div id="marketsReport" class="report-content"></div></div>
+  </div>
+
+  <!-- COMPANIES TAB -->
+  <div id="tab-companies" class="tab-panel">
+    <div class="section-title">📊 காலாண்டு முடிவு நிறுவனங்கள்</div>
+    <div class="add-form">
+      <div style="margin-bottom:15px; font-weight:600;">+ புதிய நிறுவனம் / 📋 Smart Paste</div>
+      <div class="form-row">
+        <div class="form-group"><label>🏢 நிறுவனம்</label><input type="text" id="co_name" placeholder="RELIANCE"></div>
+        <div class="form-group"><label>💰 EPS</label><input type="number" id="co_eps" step="0.01" placeholder="EPS"></div>
+        <div class="form-group"><label>📉 முந்தைய EPS</label><input type="number" id="co_prev_eps" step="0.01" placeholder="Prev EPS"></div>
+        <div class="form-group"><label>📈 வருவாய்</label><input type="number" id="co_revenue" placeholder="Revenue Cr"></div>
+        <div class="form-group"><label>📝 குறிப்பு</label><input type="text" id="co_note" placeholder="Beat/Miss"></div>
+        <div class="form-group"><label> </label><button class="btn btn-success" onclick="addCompany()">+ சேர்</button></div>
+      </div>
+      <div class="paste-area">
+        <textarea id="companyPasteData" rows="4" placeholder="Paste any format - Space / Tab / Comma&#10;RELIANCE 12.50 10.00 5000 Beat&#10;TCS 15.20 12.80 6000 Miss"></textarea>
+        <div style="margin-top:8px;"><button class="btn btn-primary" onclick="processCompanyPaste()">✅ Smart Paste</button></div>
+      </div>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>#</th><th>நிறுவனம்</th><th>EPS</th><th>Prev EPS</th><th>மாற்றம்</th><th>வருவாய்</th><th>குறிப்பு</th><th>🗑️</th></tr></thead><tbody id="companiesBody"><tr><td colspan="8" class="empty-state">📭 இல்லை</td></tr></tbody></table></div>
+    <div class="report-card"><div class="report-header" onclick="toggleReport('companiesReport')"><div class="report-title">📊 காலாண்டு முடிவு ரிப்போர்ட்</div><span>▼</span></div><div id="companiesReport" class="report-content"></div></div>
+  </div>
+
+  <!-- STOCKS TAB -->
+  <div id="tab-stocks" class="tab-panel">
+    <div class="section-title">🎯 பங்கு பரிந்துரைகள்</div>
+    <div class="add-form">
+      <div style="margin-bottom:15px; font-weight:600;">+ கைமுறையாக / 📋 Smart Paste</div>
+      <div class="form-row">
+        <div class="form-group"><label>Stock</label><input type="text" id="st_stock" placeholder="RELIANCE"></div>
+        <div class="form-group"><label>Type</label><select id="st_type"><option value="BUY">BUY</option><option value="SELL">SELL</option><option value="HOLD">HOLD</option></select></div>
+        <div class="form-group"><label>LTP</label><input type="number" id="st_ltp" step="0.05" placeholder="LTP"></div>
+        <div class="form-group"><label>Change</label><input type="number" id="st_change" step="0.05" placeholder="Change"></div>
+        <div class="form-group"><label>Change%</label><input type="number" id="st_changepct" step="0.01" placeholder="%"></div>
+        <div class="form-group"><label>Volume</label><input type="text" id="st_volume" placeholder="Volume"></div>
+        <div class="form-group"><label>Target</label><input type="number" id="st_target" step="0.05" placeholder="Target"></div>
+        <div class="form-group"><label>StopLoss</label><input type="number" id="st_sl" step="0.05" placeholder="SL"></div>
+        <div class="form-group"><label>Trend</label><input type="text" id="st_trend" placeholder="Trend"></div>
+        <div class="form-group"><label> </label><button class="btn btn-success" onclick="addStock()">+ சேர்</button></div>
+      </div>
+      <div class="paste-area">
+        <textarea id="stockPasteData" rows="4" placeholder="Paste any format - Space / Tab / Comma&#10;RELIANCE BUY 2850 +45 +1.6 15.2M 3100 2700 Bullish"></textarea>
+        <div style="margin-top:8px;"><button class="btn btn-primary" onclick="processStockPaste()">✅ Smart Paste</button><button class="btn btn-primary" onclick="generateStockRecs()">🤖 AI பரிந்துரை</button></div>
+      </div>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>Stock</th><th>Type</th><th>LTP</th><th>Change</th><th>Change%</th><th>Volume</th><th>Target</th><th>SL</th><th>Trend</th><th>🗑️</th></tr></thead><tbody id="stocksBody"><tr><td colspan="10" class="empty-state">📭 இல்லை</td></tr></tbody></table></div>
+    <div class="report-card"><div class="report-header" onclick="toggleReport('stocksReport')"><div class="report-title">🎯 பங்கு பரிந்துரை ரிப்போர்ட்</div><span>▼</span></div><div id="stocksReport" class="report-content"></div></div>
+  </div>
+
+  <!-- REPORTS TAB -->
+  <div id="tab-reports" class="tab-panel">
+    <div class="section-title">📋 முழுமையான ரிப்போர்ட்கள்</div>
+    <div class="consolidated-report">
+      <h3 style="margin-bottom:15px;">📑 முழு ரிப்போர்ட் (Consolidated Report)</h3>
+      <div id="fullReportContent"></div>
+      <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn btn-purple" onclick="printConsolidatedReport()">🖨️ பிரிண்ட்</button>
+        <button class="btn btn-amber" onclick="shareConsolidatedReport()">📱 WhatsApp</button>
+        <button class="btn btn-success" onclick="copyConsolidatedReport()">📋 நகல்</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INFO TAB -->
+  <div id="tab-info" class="tab-panel">
+    <div class="section-title">ℹ️ சந்தை நேரம் & பாதிப்பு காரணங்கள்</div>
+    <div id="marketInfoGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 16px;"></div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div id="tab-history" class="tab-panel">
+    <div class="section-title">📅 நாள் வரலாறு</div>
+    <div class="history-list" id="historyList"><div class="empty-state">📭 வரலாறு இல்லை</div></div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+let currentDate = new Date();
+let allData = JSON.parse(localStorage.getItem('completeTradingChecklist') || '{}');
+
+// Smart parse function
+function smartParseLine(line) {
+    line = line.trim();
+    if (!line) return null;
+    if (line.includes(',')) return line.split(',').map(s => s.trim());
+    if (line.includes('\t')) return line.split('\t').map(s => s.trim());
+    if (line.includes(' ')) return line.split(/\s+/).map(s => s.trim());
+    return null;
+}
+
+// Complete Markets Data with Time and Impact
+const MARKETS = [
+  { 
+    key: 'dow', name: '🇺🇸 டௌ ஜோன்ஸ் (DOW)', 
+    openTime: '7:00 PM IST', closeTime: '1:30 AM IST (next day)',
+    impact: 'அமெரிக்க பொருளாதாரத்தின் பாரோமீட்டர். DOW ஏறினால் உலக சந்தைகள் நேர்மறை. IT, Auto, Banking பங்குகளை பாதிக்கும்.',
+    impactLevel: 'High'
+  },
+  { 
+    key: 'sp500', name: '🇺🇸 S&P 500', 
+    openTime: '7:00 PM IST', closeTime: '1:30 AM IST (next day)',
+    impact: '500 பெரிய நிறுவனங்களை கொண்டது. இந்திய IT, BFSI, Pharma துறைகளை நேரடியாக பாதிக்கும். உலக சந்தையின் திசையை காட்டும்.',
+    impactLevel: 'High'
+  },
+  { 
+    key: 'nasdaq', name: '🇺🇸 NASDAQ', 
+    openTime: '7:00 PM IST', closeTime: '1:30 AM IST (next day)',
+    impact: 'டெக் நிறுவனங்கள் (Apple, Google, Microsoft). இந்திய IT பங்குகள் (TCS, Infosys, Wipro) நேரடி பாதிப்பு. Tech முதலீடுகளின் ஆரோக்கியத்தை காட்டும்.',
+    impactLevel: 'Very High'
+  },
+  { 
+    key: 'nikkei', name: '🇯🇵 நிக்கி (Nikkei 225)', 
+    openTime: '5:30 AM IST', closeTime: '12:30 PM IST',
+    impact: 'ஜப்பானின் பொருளாதாரம். ஆட்டோமொபைல், எலக்ட்ரானிக்ஸ் துறைகள். மாருதி, மஹிந்திரா போன்ற கார் பங்குகளை பாதிக்கும்.',
+    impactLevel: 'Medium'
+  },
+  { 
+    key: 'hangseng', name: '🇭🇰 ஹேங் செங்', 
+    openTime: '6:50 AM IST', closeTime: '1:00 PM IST',
+    impact: 'சீன-ஹாங்காங் சந்தை. Banking, Real Estate, China ETFs. இந்திய சந்தையில் FII ஓட்டத்தை பாதிக்கும்.',
+    impactLevel: 'Medium'
+  },
+  { 
+    key: 'shanghai', name: '🇨🇳 ஷாங்காய் (SSE)', 
+    openTime: '6:30 AM IST', closeTime: '12:30 PM IST',
+    impact: 'சீனாவின் முக்கிய சந்தை. Metaverse, EV, Battery stocks. இந்தியாவின் Metal, Chemical, Pharma பங்குகளை பாதிக்கும்.',
+    impactLevel: 'Medium'
+  },
+  { 
+    key: 'dax', name: '🇩🇪 டாக்ஸ் (DAX)', 
+    openTime: '11:30 AM IST', closeTime: '7:30 PM IST',
+    impact: 'ஐரோப்பிய பொருளாதாரத்தின் மையம். Auto, Luxury, Industrial sectors. இந்திய ஏற்றுமதி நிறுவனங்களை பாதிக்கும்.',
+    impactLevel: 'Medium'
+  },
+  { 
+    key: 'ftse', name: '🇬🇧 FTSE 100', 
+    openTime: '11:30 AM IST', closeTime: '7:30 PM IST',
+    impact: 'லண்டன் சந்தை. Oil & Gas, Banking, Mining. BP, Shell போன்றவை இந்திய Oil பங்குகளை பாதிக்கும்.',
+    impactLevel: 'Medium'
+  },
+  { 
+    key: 'sgx', name: '🇸🇬 SGX நிப்டி', 
+    openTime: '6:30 AM IST', closeTime: '10:00 PM IST',
+    impact: 'இந்திய நிப்டியின் முன்னோடி! SGX Nifty ஆனது Nifty 50-க்கு 95% correlation உள்ளது. இந்திய சந்தையின் திறப்பை கணிக்க முக்கியமானது.',
+    impactLevel: 'Very High'
+  },
+  { 
+    key: 'vix', name: '📊 VIX (Fear Index)', 
+    openTime: '7:00 PM IST', closeTime: '1:30 AM IST',
+    impact: 'சந்தை பயம் குறியீடு. VIX உயர்ந்தால் சந்தை நிச்சயமற்றது. Options trading-க்கு முக்கியம். இந்திய VIX-ஐ பாதிக்கும்.',
+    impactLevel: 'High'
+  },
+  { 
+    key: 'usd_inr', name: '💵 USD/INR', 
+    openTime: '24/7', closeTime: 'Forex Market',
+    impact: 'ரூபாயின் மதிப்பு. FII inflows/outflows. IT, Pharma, Export companies-க்கு நேரடி பாதிப்பு. Inflation-ஐ பாதிக்கும்.',
+    impactLevel: 'Very High'
+  },
+  { 
+    key: 'crude', name: '🛢️ கச்சா எண்ணெய்', 
+    openTime: '6:30 AM IST', closeTime: '1:00 AM IST',
+    impact: 'OIL, IOC, BPCL - Refinery stocks. Crude விலை உயர்ந்தால் Inflation அதிகரிக்கும். Aviation, Logistics, Auto sectors பாதிப்பு.',
+    impactLevel: 'High'
+  }
+];
+
+function getDateKey(d) { return d.toISOString().split('T')[0]; }
+function getTodayData() {
+  const key = getDateKey(currentDate);
+  if (!allData[key]) allData[key] = { markets: {}, companies: [], stocks: [] };
+  return allData[key];
+}
+function changeDate(dir) { currentDate.setDate(currentDate.getDate() + dir); updateDateDisplay(); loadAll(); }
+function updateDateDisplay() {
+  const days = ['ஞாயிறு','திங்கள்','செவ்வாய்','புதன்','வியாழன்','வெள்ளி','சனி'];
+  const months = ['ஜன','பிப்','மார்','ஏப்','மே','ஜூன்','ஜூலை','ஆக','செப்','அக்','நவ','டிச'];
+  document.getElementById('currentDate').textContent = `${currentDate.getDate()} ${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+}
+function showTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name === 'info') renderMarketInfo();
+}
+
+// MARKETS RENDER with Time and Impact
+function renderMarkets() {
+  const data = getTodayData();
+  const grid = document.getElementById('marketsGrid');
+  grid.innerHTML = '';
+  MARKETS.forEach(mkt => {
+    const m = data.markets[mkt.key] || { ltp: '', points: '', pct: '', status: 'neutral' };
+    const impactColor = mkt.impactLevel === 'Very High' ? '#ec4899' : mkt.impactLevel === 'High' ? '#f59e0b' : '#14b8a6';
+    const card = document.createElement('div');
+    card.className = `market-card ${m.status || 'neutral'}`;
+    card.innerHTML = `
+      <div class="market-name">${mkt.name}</div>
+      <div class="market-time">🕐 ${mkt.openTime} | 🔒 ${mkt.closeTime}</div>
+      <div class="market-impact" style="border-left: 2px solid ${impactColor};">💡 ${mkt.impact.substring(0, 80)}...</div>
+      <div class="market-points"><input type="number" placeholder="LTP" value="${m.ltp}" step="0.01" onchange="updateMarket('${mkt.key}', 'ltp', this.value)"></div>
+      <div class="market-points" style="margin-top:6px;"><input type="number" placeholder="Points" value="${m.points}" step="0.01" onchange="updateMarket('${mkt.key}', 'points', this.value)"></div>
+      <div class="market-pct"><input type="number" placeholder="%" value="${m.pct}" step="0.01" onchange="updateMarket('${mkt.key}', 'pct', this.value)"><span style="margin-left:5px;">%</span></div>
+      <div class="status-toggle">
+        <button class="stbtn up ${m.status === 'up' ? 'active' : ''}" onclick="setStatus('${mkt.key}', 'up')">📈 ஏறும்</button>
+        <button class="stbtn down ${m.status === 'down' ? 'active' : ''}" onclick="setStatus('${mkt.key}', 'down')">📉 இறங்கும்</button>
+        <button class="stbtn neutral ${m.status === 'neutral' ? 'active' : ''}" onclick="setStatus('${mkt.key}', 'neutral')">⚖️ நடுநிலை</button>
+      </div>
+      <div class="market-arrow">${m.status === 'up' ? '▲' : m.status === 'down' ? '▼' : '●'}</div>
+    `;
+    grid.appendChild(card);
+  });
+  generateMarketsReport();
+}
+
+function renderMarketInfo() {
+  const grid = document.getElementById('marketInfoGrid');
+  grid.innerHTML = MARKETS.map(mkt => {
+    const impactColor = mkt.impactLevel === 'Very High' ? '#ec4899' : mkt.impactLevel === 'High' ? '#f59e0b' : '#14b8a6';
+    return `
+      <div class="market-card neutral" style="background: var(--card);">
+        <div class="market-name">${mkt.name}</div>
+        <div class="market-time">🕐 திறப்பு: ${mkt.openTime} | 🔒 மூடுதல்: ${mkt.closeTime}</div>
+        <div class="market-impact" style="background: rgba(${impactColor === '#ec4899' ? '236,72,153' : impactColor === '#f59e0b' ? '245,158,11' : '20,184,166'}, 0.1); border-left: 3px solid ${impactColor};">
+          <strong>📌 பாதிப்பு நிலை:</strong> ${mkt.impactLevel}<br>
+          <strong>🎯 இந்திய சந்தை பாதிப்பு:</strong><br>${mkt.impact}
+        </div>
+        <div class="info-box" style="margin-top: 10px;">
+          <div class="info-title">💡 வர்த்தக யோசனை</div>
+          <div class="info-text">${getTradingTip(mkt.key)}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function getTradingTip(key) {
+  const tips = {
+    dow: 'DOW 500 புள்ளிகளுக்கு மேல் உயர்ந்தால் இந்திய சந்தை நேர்மறை. Banking & IT பங்குகளை கவனியுங்கள்.',
+    sp500: 'S&P 500-ன் மாற்றம் Indian IT & Pharma-ஐ பாதிக்கும். 1% மாற்றத்திற்கு Nifty 0.5% மாறும்.',
+    nasdaq: 'NASDAQ உயர்வு IT பங்குகளுக்கு நல்லது. TCS, Infosys, HCL Tech-ஐ கண்காணிக்கவும்.',
+    nikkei: 'Maruti, M&M, Toyota related stocks-ன் மீது கவனம். Nikkei 500+ points move important.',
+    hangseng: 'Hang Seng உயர்வு FII inflows-ஐ அதிகரிக்கும். Banking stocks-க்கு நல்லது.',
+    shanghai: 'China +ve = Metal & Chemical stocks +ve. Hindalco, Tata Chemicals பார்க்கவும்.',
+    dax: 'DAX உயர்வு இந்திய Auto ancillaries-க்கு நல்லது. Continental, Bosch-ன் தாக்கம்.',
+    ftse: 'FTSE 100-ன் Oil & Gas மாற்றம் Indian Oil, BPCL-ஐ பாதிக்கும்.',
+    sgx: 'SGX Nifty = Nifty 50-ன் Proxy. 50+ points move முக்கியம். இந்திய சந்தை திறப்பை இதன் மூலம் கணிக்கலாம்.',
+    vix: 'VIX 20+ என்றால் அதிக volatility. Options selling தவிர்க்கவும். India VIX-ஐ கண்காணிக்கவும்.',
+    usd_inr: 'USD/INR 83+ என்றால் IT & Pharma நல்லது. 81- என்றால் Banking & Auto நல்லது.',
+    crude: 'Crude $80- கீழ் என்றால் OMCs & Aviation நல்லது. $90+ என்றால் Auto & Logistics negative.'
+  };
+  return tips[key] || 'சந்தை நிலவரத்தை கண்காணிக்கவும்.';
+}
+
+function updateMarket(key, field, val) {
+  const data = getTodayData();
+  if (!data.markets[key]) data.markets[key] = { ltp: '', points: '', pct: '', status: 'neutral' };
+  data.markets[key][field] = val;
+  renderMarkets();
+}
+function setStatus(key, status) {
+  const data = getTodayData();
+  if (!data.markets[key]) data.markets[key] = { ltp: '', points: '', pct: '', status: 'neutral' };
+  data.markets[key].status = status;
+  renderMarkets();
+}
+function clearMarkets() { if(confirm('அழிக்கவா?')) { getTodayData().markets = {}; renderMarkets(); showToast('சந்தை தரவுகள் அழிக்கப்பட்டன'); } }
+
+// COMPANIES functions
+function addCompany() {
+  const name = document.getElementById('co_name').value.trim().toUpperCase();
+  if (!name) { showToast('பெயர் தேவை'); return; }
+  getTodayData().companies.push({ id: Date.now(), name, eps: parseFloat(document.getElementById('co_eps').value)||0, prev_eps: parseFloat(document.getElementById('co_prev_eps').value)||0, revenue: parseFloat(document.getElementById('co_revenue').value)||0, note: document.getElementById('co_note').value.trim() });
+  document.getElementById('co_name').value = ''; document.getElementById('co_eps').value = ''; document.getElementById('co_prev_eps').value = ''; document.getElementById('co_revenue').value = ''; document.getElementById('co_note').value = '';
+  renderCompanies(); showToast('✅ சேர்க்கப்பட்டது');
+}
+function deleteCompany(id) { getTodayData().companies = getTodayData().companies.filter(c => c.id !== id); renderCompanies(); }
+function renderCompanies() {
+  const data = getTodayData();
+  const tbody = document.getElementById('companiesBody');
+  if (!data.companies.length) { tbody.innerHTML = '<tr><td colspan="8" class="empty-state">📭 இல்லை</td></tr>'; generateCompaniesReport(); return; }
+  tbody.innerHTML = data.companies.map((c, i) => {
+    const chg = c.prev_eps ? ((c.eps - c.prev_eps) / Math.abs(c.prev_eps) * 100).toFixed(1) : '—';
+    const chgColor = parseFloat(chg) >= 0 ? 'green' : 'red';
+    return `<tr><td>${i+1}</td><td><strong>${c.name}</strong></td><td>₹${c.eps.toFixed(2)}</td><td>₹${c.prev_eps.toFixed(2)}</td><td style="color:${chgColor}">${chg !== '—' ? (parseFloat(chg)>=0?'+':'')+chg+'%' : '—'}</td><td>${c.revenue ? '₹'+c.revenue.toLocaleString() : '—'}</td><td>${c.note || '—'}</td><td><button class="del-btn" onclick="deleteCompany(${c.id})">🗑️</button></td></tr>`;
+  }).join('');
+  generateCompaniesReport();
+}
+function processCompanyPaste() {
+  const text = document.getElementById('companyPasteData').value;
+  const lines = text.split('\n');
+  const companies = [];
+  for(let line of lines) {
+    line = line.trim();
+    if(!line) continue;
+    const parts = smartParseLine(line);
+    if(parts && parts.length >= 2) {
+      companies.push({ id: Date.now()+Math.random(), name: parts[0].toUpperCase(), eps: parseFloat(parts[1])||0, prev_eps: parts[2]?parseFloat(parts[2]):0, revenue: parts[3]?parseFloat(parts[3]):0, note: parts[4]||'' });
+    }
+  }
+  if(companies.length) { getTodayData().companies.push(...companies); renderCompanies(); showToast(`✅ ${companies.length} நிறுவனங்கள்`); document.getElementById('companyPasteData').value = ''; }
+  else showToast('❌ தவறான வடிவமைப்பு');
+}
+
+// STOCKS functions
+function addStock() {
+  const stock = document.getElementById('st_stock').value.trim().toUpperCase();
+  if(!stock) { showToast('Stock பெயர் தேவை'); return; }
+  getTodayData().stocks.push({ id: Date.now(), stock, type: document.getElementById('st_type').value, ltp: parseFloat(document.getElementById('st_ltp').value)||0, change: parseFloat(document.getElementById('st_change').value)||0, changePct: parseFloat(document.getElementById('st_changepct').value)||0, volume: document.getElementById('st_volume').value||'—', target: parseFloat(document.getElementById('st_target').value)||0, sl: parseFloat(document.getElementById('st_sl').value)||0, trend: document.getElementById('st_trend').value.trim()||'—' });
+  ['st_stock','st_ltp','st_change','st_changepct','st_volume','st_target','st_sl','st_trend'].forEach(id=>document.getElementById(id).value='');
+  renderStocks(); showToast('✅ சேர்க்கப்பட்டது');
+}
+function deleteStock(id) { getTodayData().stocks = getTodayData().stocks.filter(s=>s.id!==id); renderStocks(); }
+function renderStocks() {
+  const data = getTodayData();
+  const tbody = document.getElementById('stocksBody');
+  if(!data.stocks.length) { tbody.innerHTML = '<tr><td colspan="10" class="empty-state">📭 இல்லை</td></tr>'; generateStocksReport(); return; }
+  tbody.innerHTML = data.stocks.map(s => `<tr><td><strong>${s.stock}</strong></td><td><span style="background:${s.type==='BUY'?'rgba(16,185,129,0.15)':s.type==='SELL'?'rgba(239,68,68,0.15)':'rgba(245,158,11,0.15)'}; padding:4px 12px; border-radius:20px;">${s.type}</span></td><td>₹${s.ltp.toFixed(2)}</td><td style="color:${s.change>=0?'green':'red'}">${s.change>=0?'+':''}${s.change.toFixed(2)}</td><td style="color:${s.changePct>=0?'green':'red'}">${s.changePct>=0?'+':''}${s.changePct.toFixed(2)}%</td><td>${s.volume}</td><td style="color:var(--teal)">₹${s.target.toFixed(2)}</td><td style="color:var(--red)">₹${s.sl.toFixed(2)}</td><td>${s.trend}</td><td><button class="del-btn" onclick="deleteStock(${s.id})">🗑️</button></td></tr>`).join('');
+  generateStocksReport();
+}
+function processStockPaste() {
+  const text = document.getElementById('stockPasteData').value;
+  const lines = text.split('\n');
+  const stocks = [];
+  for(let line of lines) {
+    line = line.trim();
+    if(!line) continue;
+    const parts = smartParseLine(line);
+    if(parts && parts.length >= 3) {
+      stocks.push({ id: Date.now()+Math.random(), stock: parts[0].toUpperCase(), type: parts[1]||'HOLD', ltp: parseFloat(parts[2])||0, change: parts[3]?parseFloat(parts[3]):0, changePct: parts[4]?parseFloat(parts[4]):0, volume: parts[5]||'—', target: parts[6]?parseFloat(parts[6]):0, sl: parts[7]?parseFloat(parts[7]):0, trend: parts[8]||'—' });
+    }
+  }
+  if(stocks.length) { getTodayData().stocks.push(...stocks); renderStocks(); showToast(`✅ ${stocks.length} பரிந்துரைகள்`); document.getElementById('stockPasteData').value = ''; }
+  else showToast('❌ தவறான வடிவமைப்பு');
+}
+
+// AI Functions
+function analyzeMarkets() {
+  const data = getTodayData();
+  let up=0, down=0;
+  MARKETS.forEach(m => { const d = data.markets[m.key] || {}; if(d.status==='up') up++; if(d.status==='down') down++; });
+  let analysis = `📈 <strong>சந்தை பகுப்பாய்வு</strong><br><br>`;
+  if(up > down) analysis += '🌍 உலக சந்தைகள் நேர்மறையாக உள்ளன.<br>🇮🇳 இந்திய சந்தை நேர்மறையான தொடக்கத்தை எதிர்பார்க்கலாம்.<br><br>✨ <strong>பரிந்துரை:</strong> BUY<br>📊 IT, Banking, Pharma பங்குகளை கவனியுங்கள்.<br>⚠️ SGX Nifty-ஐ கண்காணிக்கவும்.';
+  else if(down > up) analysis += '🌍 உலக சந்தைகள் எதிர்மறையாக உள்ளன.<br>🇮🇳 இந்திய சந்தையில் எச்சரிக்கையாக இருங்கள்.<br><br>✨ <strong>பரிந்துரை:</strong> HOLD/SELL<br>💰 பாதுகாப்பான பங்குகளில் முதலீடு செய்யவும்.<br>⚠️ Crude oil & USD/INR-ஐ கவனிக்கவும்.';
+  else analysis += '🌍 சந்தைகள் கலவையான நிலையில் உள்ளன.<br>🇮🇳 தேர்ந்தெடுக்கப்பட்ட பங்குகளில் மட்டும் முதலீடு செய்யவும்.<br><br>✨ <strong>பரிந்துரை:</strong> SELECTIVE BUY<br>📊 Quarterly results-ஐ பகுப்பாய்வு செய்யவும்.';
+  document.getElementById('marketsReport').innerHTML = analysis;
+  document.getElementById('marketsReport').classList.add('show');
+}
+function generateStockRecs() {
+  const companies = getTodayData().companies || [];
+  const stocks = [];
+  companies.slice(0,5).forEach((c,i) => {
+    const growth = c.prev_eps ? ((c.eps - c.prev_eps)/c.prev_eps*100) : 0;
+    let type = growth>5 ? 'BUY' : growth<-5 ? 'SELL' : 'HOLD';
+    stocks.push({ id: Date.now()+i, stock: c.name, type: type, ltp: Math.round(c.eps*18), change: (growth/2).toFixed(2), changePct: growth.toFixed(2), volume: '1.5M', target: Math.round(c.eps*22), sl: Math.round(c.eps*15), trend: growth>0 ? 'Bullish' : 'Neutral' });
+  });
+  if(stocks.length) { getTodayData().stocks.push(...stocks); renderStocks(); showToast(`✅ ${stocks.length} AI பரிந்துரைகள்`); }
+  else showToast('⚠️ முதலில் காலாண்டு முடிவுகளை பதிவேற்றவும்');
+}
+
+// Report Generators
+function generateMarketsReport() {
+  const data = getTodayData();
+  let html = '<tr><thead><tr><th>சந்தை</th><th>LTP</th><th>Points</th><th>%</th><th>Status</th><th>Impact</th></tr></thead><tbody>';
+  MARKETS.forEach(m => { const d = data.markets[m.key] || {}; html += `<tr><td>${m.name}</td><td>${d.ltp||'-'}</td><td>${d.points||'-'}</td><td>${d.pct||'-'}%</td><td>${d.status==='up'?'🟢 ஏறும்':d.status==='down'?'🔴 இறங்கும்':'🟡 நடுநிலை'}</td><td style="font-size:10px">${m.impact.substring(0,50)}...</td></tr>`; });
+  html += '</tbody></table>';
+  document.getElementById('marketsReport').innerHTML = html;
+}
+function generateCompaniesReport() {
+  const data = getTodayData();
+  let html = '<td><thead><tr><th>நிறுவனம்</th><th>EPS</th><th>Prev EPS</th><th>மாற்றம்</th><th>வருவாய்</th><th>குறிப்பு</th></tr></thead><tbody>';
+  data.companies.forEach(c => { const chg = c.prev_eps ? ((c.eps-c.prev_eps)/c.prev_eps*100).toFixed(1) : '—'; html += `<tr><td>${c.name}</td><td>₹${c.eps.toFixed(2)}</td><td>₹${c.prev_eps.toFixed(2)}</td><td style="color:${parseFloat(chg)>=0?'green':'red'}">${chg}%</td><td>${c.revenue?'₹'+c.revenue.toLocaleString():'-'}</td><td>${c.note||'-'}</td></tr>`; });
+  html += '</tbody></table>';
+  document.getElementById('companiesReport').innerHTML = html;
+}
+function generateStocksReport() {
+  const data = getTodayData();
+  let html = '<tr><thead><tr><th>Stock</th><th>Type</th><th>LTP</th><th>Target</th><th>SL</th><th>Trend</th></tr></thead><tbody>';
+  data.stocks.forEach(s => { html += `<tr><td>${s.stock}</td><td style="color:${s.type==='BUY'?'green':s.type==='SELL'?'red':'orange'}">${s.type}</td><td>₹${s.ltp.toFixed(2)}</td><td>₹${s.target.toFixed(2)}</td><td>₹${s.sl.toFixed(2)}</td><td>${s.trend}</td></tr>`; });
+  html += '</tbody></table>';
+  document.getElementById('stocksReport').innerHTML = html;
+}
+function toggleReport(id) { document.getElementById(id).classList.toggle('show'); }
+
+function getFullReportHTML() {
+  const data = getTodayData();
+  const days = ['ஞாயிறு','திங்கள்','செவ்வாய்','புதன்','வியாழன்','வெள்ளி','சனி'];
+  const dateKey = getDateKey(currentDate);
+  const d = new Date(currentDate);
+  let html = `<h2>📊 முழுமையான வர்த்தக ரிப்போர்ட்</h2><p><strong>தேதி:</strong> ${dateKey} (${days[d.getDay()]})</p>`;
+  html += `<h3>🌍 உலக சந்தை முடிவுகள்</h3><table border="1" cellpadding="8" style="border-collapse:collapse;width:100%"><tr><th>சந்தை</th><th>LTP</th><th>Points</th><th>%</th><th>Status</th><th>திறப்பு/மூடுதல்</th></tr>`;
+  MARKETS.forEach(m => { const mk = data.markets[m.key] || {}; html += `<tr><td>${m.name}</td><td>${mk.ltp||'-'}</td><td>${mk.points||'-'}</td><td>${mk.pct||'-'}%</td><td>${mk.status==='up'?'🟢 ஏறும்':mk.status==='down'?'🔴 இறங்கும்':'🟡 நடுநிலை'}</td><td style="font-size:10px">${m.openTime} - ${m.closeTime}</td></tr>`; });
+  html += `</table><h3>📊 காலாண்டு முடிவு நிறுவனங்கள்</h3><table border="1" cellpadding="8"><tr><th>நிறுவனம்</th><th>EPS</th><th>Prev EPS</th><th>மாற்றம்</th><th>வருவாய்</th></tr>`;
+  data.companies.forEach(c => { const chg = c.prev_eps ? ((c.eps-c.prev_eps)/c.prev_eps*100).toFixed(1) : '—'; html += `<tr><td>${c.name}</td><td>₹${c.eps.toFixed(2)}</td><td>₹${c.prev_eps.toFixed(2)}</td><td>${chg}%</td><td>${c.revenue?'₹'+c.revenue.toLocaleString():'-'}</td></tr>`; });
+  html += `</table><h3>🎯 பங்கு பரிந்துரைகள்</h3><table border="1" cellpadding="8"><tr><th>Stock</th><th>Type</th><th>LTP</th><th>Target</th><th>SL</th><th>Volume</th></tr>`;
+  data.stocks.forEach(s => { html += `<tr><td>${s.stock}</td><td>${s.type}</td><td>₹${s.ltp.toFixed(2)}</td><td>₹${s.target.toFixed(2)}</td><td>₹${s.sl.toFixed(2)}</td><td>${s.volume}</td></tr>`; });
+  html += `</table><p><small>⚠️ கல்வி நோக்கத்திற்கு மட்டுமே</small></p>`;
+  return html;
+}
+function showConsolidatedReport() { document.getElementById('fullReportContent').innerHTML = getFullReportHTML(); showTab('reports', document.querySelectorAll('.tab')[3]); showToast('📑 முழு ரிப்போர்ட் தயார்'); }
+function printConsolidatedReport() { const win = window.open('', '_blank'); win.document.write(`<html><head><meta charset="UTF-8"><title>Complete Trading Report</title><style>body{font-family:Arial;margin:30px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:8px}th{background:#f0f0f0}</style></head><body>${getFullReportHTML()}</body></html>`); win.document.close(); win.print(); }
+function shareConsolidatedReport() {
+  const data = getTodayData();
+  const dateKey = getDateKey(currentDate);
+  let msg = `📊 *முழு வர்த்தக ரிப்போர்ட் - ${dateKey}* 📊\n\n🌍 *உலக சந்தைகள்:*\n`;
+  MARKETS.slice(0,6).forEach(m => { const d = data.markets[m.key] || {}; msg += `${m.name}: ${d.ltp||'-'} (${d.pct||'-'}%) ${d.status==='up'?'🟢':d.status==='down'?'🔴':'🟡'}\n`; });
+  msg += `\n🎯 *பரிந்துரைகள்:*\n`; (data.stocks||[]).slice(0,5).forEach(s => msg += `• ${s.stock}: ${s.type} | Target: ₹${s.target.toFixed(2)}\n`);
+  msg += `\n⚠️ *Disclaimer: கல்வி நோக்கத்திற்கு மட்டுமே*`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+}
+function copyConsolidatedReport() { const text = getFullReportHTML().replace(/<[^>]*>/g, ''); navigator.clipboard.writeText(text).then(() => showToast('📋 நகல் எடுக்கப்பட்டது')); }
+
+function saveAllData() { localStorage.setItem('completeTradingChecklist', JSON.stringify(allData)); renderHistory(); showToast('✅ சேமிக்கப்பட்டது'); }
+function loadAll() { renderMarkets(); renderCompanies(); renderStocks(); renderHistory(); generateMarketsReport(); generateCompaniesReport(); generateStocksReport(); }
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  const keys = Object.keys(allData).sort().reverse();
+  if(!keys.length) { list.innerHTML = '<div class="empty-state">📭 வரலாறு இல்லை</div>'; return; }
+  const days = ['ஞாயிறு','திங்கள்','செவ்வாய்','புதன்','வியாழன்','வெள்ளி','சனி'];
+  list.innerHTML = keys.map(key => {
+    const d = allData[key]; const mCount = Object.keys(d.markets||{}).length; const cCount = (d.companies||[]).length; const sCount = (d.stocks||[]).length;
+    const date = new Date(key);
+    return `<div class="history-item" onclick="loadDate('${key}')"><div><div class="history-date">📅 ${key} (${days[date.getDay()]})</div><div class="history-summary">🌐 ${mCount} | 🏢 ${cCount} | 🎯 ${sCount}</div></div><div class="history-actions"><button class="btn btn-outline" onclick="event.stopPropagation(); deleteHistory('${key}')">🗑️</button></div></div>`;
+  }).join('');
+}
+function loadDate(key) { const parts = key.split('-'); currentDate = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2])); updateDateDisplay(); loadAll(); showTab('markets', document.querySelectorAll('.tab')[0]); showToast(`📂 ${key} ஏற்றப்பட்டது`); }
+function deleteHistory(key) { if(confirm('நீக்கவா?')) { delete allData[key]; localStorage.setItem('completeTradingChecklist', JSON.stringify(allData)); if(getDateKey(currentDate)===key) loadAll(); renderHistory(); showToast(`🗑️ ${key} நீக்கப்பட்டது`); } }
+function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.style.opacity='1'; setTimeout(()=>t.style.opacity='0',2500); }
+
+updateDateDisplay();
+loadAll();
+</script>
+</body>
+</html>
